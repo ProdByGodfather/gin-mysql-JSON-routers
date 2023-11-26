@@ -33,6 +33,7 @@ func main() {
 	router.GET("/", getAllProducts)
 	router.POST("/", CreateProducts)
 	router.PUT("/:id", UpdateProducts)
+	router.DELETE("/:id", DeleteProducts)
 
 	// if router has error
 	err = router.Run("localhost:8080")
@@ -103,4 +104,18 @@ func UpdateProducts(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, "Product successfully updated!")
+}
+
+func DeleteProducts(c *gin.Context) {
+	// دریافت شناسه محصول از درخواست
+	productID := c.Param("id")
+
+	// اجرای کوئری برای حذف محصول با استفاده از شناسه محصول
+	_, err := db.Exec("DELETE FROM products WHERE id = ?", productID)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, "Product successfully deleted!")
 }
