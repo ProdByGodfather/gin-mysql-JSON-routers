@@ -32,6 +32,7 @@ func main() {
 	// routers
 	router.GET("/", getAllProducts)
 	router.POST("/", CreateProducts)
+	router.PUT("/:id", UpdateProducts)
 
 	// if router has error
 	err = router.Run("localhost:8080")
@@ -79,4 +80,27 @@ func CreateProducts(c *gin.Context) {
 	fmt.Println("ID Of Last Row inserted:", lastInserted)
 	fmt.Println("Number of rows affected:", rowsAffec)
 	c.IndentedJSON(http.StatusCreated, "Data Successfully created!")
+}
+
+func UpdateProducts(c *gin.Context) {
+	// دریافت شناسه محصول از درخواست
+	productID := c.Param("id")
+
+	// دریافت اطلاعات محصول از درخواست
+	var updatedProduct product
+	err := c.ShouldBindJSON(&updatedProduct)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// اجرای کوئری برای به‌روزرسانی محصول با استفاده از شناسه محصول
+	_, err = db.Exec("UPDATE products SET name = ?, price = ?, description = ? WHERE id = ?",
+		updatedProduct.Name, updatedProduct.Price, updatedProduct.Description, productID)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, "Product successfully updated!")
 }
